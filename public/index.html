@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>AI Fitness Coach — Full Stack</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <main id="app-container">
+    <header>
+      <img src="dumbbell.svg" alt="logo" class="logo" />
+      <h1>Your AI Fitness Coach</h1>
+      <p>Fill details → Generate a personalized plan (from the server)</p>
+    </header>
+
+    <!-- Step 1 - Onboarding form -->
+    <section id="onboarding-screen" class="screen active">
+      <div class="card form-card">
+        <form id="user-input-form">
+          <label for="height">Height (cm)</label>
+          <input id="height" type="number" required value="170" />
+
+          <label for="weight">Weight (kg)</label>
+          <input id="weight" type="number" required value="70" />
+
+          <label for="goal">Goal</label>
+          <select id="goal" required>
+            <option value="maintain">Maintain</option>
+            <option value="lose">Weight Loss</option>
+            <option value="gain">Muscle Gain</option>
+          </select>
+
+          <button type="submit" class="primary-btn">Generate My Plan</button>
+        </form>
+      </div>
+    </section>
+
+    <!-- Results (same page below) -->
+    <section id="results-screen" class="screen hidden">
+      <h2 class="section-title">Personalized Workout Schedule</h2>
+      <div id="workout-plan-container"></div>
+
+      <h2 class="section-title">Nutrition Guide</h2>
+      <div id="nutrition-plan-container"></div>
+
+      <h2 class="section-title">Progress Dashboard</h2>
+      <div id="tracking-cards-container"></div>
+
+      <div class="chart-card">
+        <h3>Weight Progress</h3>
+        <canvas id="weight-chart" width="400" height="200"></canvas>
+      </div>
+
+      <div class="actions">
+        <button id="back-btn" class="secondary-btn">← Back</button>
+        <button id="regenerate-btn" class="primary-btn">Regenerate Plan</button>
+      </div>
+    </section>
+  </main>
+
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>
