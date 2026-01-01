@@ -5,225 +5,234 @@ const axios = require('axios');
 
 const app = express();
 const PORT = 3000;
-const YOUTUBE_API_KEY = 'AIzaSyDMOZiT8X7BmlznyYREtP3QNEVSO9vj4HY'; // <-- Replace with your own key if needed
+
+/* 🔴 Your YouTube API key */
+const YOUTUBE_API_KEY = 'AIzaSyDMOZiT8X7BmlznyYREtP3QNEVSO9vj4HY';
 
 app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Helper: fetch the top YouTube video ID for an exercise search term
+/* ---------------- YOUTUBE HELPER ---------------- */
 async function fetchYouTubeVideoId(query) {
-  const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&maxResults=1&q=${encodeURIComponent(query)}&key=${YOUTUBE_API_KEY}`;
-  try {
-    const res = await axios.get(url);
-    if (
-      res.data &&
-      res.data.items &&
-      res.data.items.length > 0 &&
-      res.data.items[0].id.videoId
-    ) {
-      return res.data.items[0].id.videoId;
+    try {
+        const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&maxResults=1&q=${encodeURIComponent(
+            query
+        )}&key=${YOUTUBE_API_KEY}`;
+        const res = await axios.get(url);
+        return res.data.items[0]?.id?.videoId || '';
+    } catch (e) {
+        return '';
     }
-  } catch (error) {
-    console.error('YouTube fetch error for query:', query, error.message);
-  }
-  return "";
 }
 
-// Plan templates for each goal!
+/* ---------------- WORKOUT PLANS ---------------- */
 const planTemplates = {
-  gain: [
-    {
-      day: "Monday",
-      focus: "Upper Body Strength",
-      duration_min: 50,
-      intensity: "Moderate/Heavy",
-      exercises: [
-        { name: "Bench Press", sets: 4, reps: "8", rest_s: 90 },
-        { name: "Pull Ups", sets: 4, reps: "10", rest_s: 60 }
-      ]
-    },
-    {
-      day: "Wednesday",
-      focus: "Lower Body Mass",
-      duration_min: 55,
-      intensity: "Heavy",
-      exercises: [
-        { name: "Barbell Squats", sets: 5, reps: "6", rest_s: 120 },
-        { name: "Lunges", sets: 3, reps: "12", rest_s: 60 }
-      ]
-    },
-    {
-      day: "Friday",
-      focus: "Full Body Pump",
-      duration_min: 45,
-      intensity: "Moderate",
-      exercises: [
-        { name: "Deadlift", sets: 4, reps: "6", rest_s: 120 },
-        { name: "Push Ups", sets: 4, reps: "15", rest_s: 60 }
-      ]
-    }
-  ],
-  lose: [
-    {
-      day: "Monday",
-      focus: "HIIT & Cardio",
-      duration_min: 40,
-      intensity: "High",
-      exercises: [
-        { name: "Burpees", sets: 5, reps: "15", rest_s: 30 },
-        { name: "Mountain Climbers", sets: 4, reps: "20", rest_s: 30 }
-      ]
-    },
-    {
-      day: "Wednesday",
-      focus: "Circuit Training",
-      duration_min: 45,
-      intensity: "High",
-      exercises: [
-        { name: "Jumping Jacks", sets: 4, reps: "30", rest_s: 20 },
-        { name: "Bodyweight Squats", sets: 4, reps: "20", rest_s: 20 }
-      ]
-    },
-    {
-      day: "Friday",
-      focus: "Core & Cardio",
-      duration_min: 38,
-      intensity: "Moderate/High",
-      exercises: [
-        { name: "Running", sets: 1, reps: "20 min", rest_s: 0 },
-        { name: "Plank", sets: 3, reps: "1 min", rest_s: 60 }
-      ]
-    }
-  ],
-  maintain: [
-    {
-      day: "Monday",
-      focus: "Balanced Full Body",
-      duration_min: 45,
-      intensity: "Moderate",
-      exercises: [
-        { name: "Push Ups", sets: 3, reps: "15", rest_s: 60 },
-        { name: "Squats", sets: 3, reps: "15", rest_s: 60 }
-      ]
-    },
-    {
-      day: "Wednesday",
-      focus: "Mobility & Cardio",
-      duration_min: 35,
-      intensity: "Light/Moderate",
-      exercises: [
-        { name: "Jump Rope", sets: 3, reps: "3 min", rest_s: 60 },
-        { name: "Walking Lunges", sets: 3, reps: "12", rest_s: 45 }
-      ]
-    },
-    {
-      day: "Friday",
-      focus: "Active Recovery",
-      duration_min: 40,
-      intensity: "Light",
-      exercises: [
-        { name: "Yoga", sets: 1, reps: "40 min", rest_s: 0 },
-        { name: "Stretching", sets: 3, reps: "5 min", rest_s: 0 }
-      ]
-    }
-  ]
+    gain: [
+        { day: 'Monday', duration_min: 25, exercises: [
+            { name: 'Push Ups', sets: 3, reps: '10–12' },
+            { name: 'Shoulder Press', sets: 3, reps: '10' }
+        ]},
+        { day: 'Tuesday', duration_min: 25, exercises: [
+            { name: 'Goblet Squats', sets: 3, reps: '12' },
+            { name: 'Glute Bridges', sets: 3, reps: '12' }
+        ]},
+        { day: 'Wednesday', duration_min: 20, exercises: [
+            { name: 'Bent Over Rows', sets: 3, reps: '10' },
+            { name: 'Plank', sets: 3, reps: '30 sec' }
+        ]},
+        { day: 'Thursday', duration_min: 15, exercises: [
+            { name: 'Brisk Walking', sets: 1, reps: '15 min' }
+        ]},
+        { day: 'Friday', duration_min: 25, exercises: [
+            { name: 'Deadlift', sets: 3, reps: '8–10' },
+            { name: 'Incline Push Ups', sets: 3, reps: '10' }
+        ]},
+        { day: 'Saturday', duration_min: 20, exercises: [
+            { name: 'Bicep Curls', sets: 3, reps: '12' },
+            { name: 'Lateral Raises', sets: 3, reps: '12' }
+        ]},
+        { day: 'Sunday', duration_min: 15, exercises: [
+            { name: 'Yoga', sets: 1, reps: '20 min' }
+        ]}
+    ],
+
+    lose: [
+        { day: 'Monday', duration_min: 20, exercises: [
+            { name: 'Jumping Jacks', sets: 4, reps: '30 sec' },
+            { name: 'High Knees', sets: 4, reps: '30 sec' }
+        ]},
+        { day: 'Tuesday', duration_min: 25, exercises: [
+            { name: 'Brisk Walking', sets: 1, reps: '25 min' },
+            { name: 'Crunches', sets: 3, reps: '15' }
+        ]},
+        { day: 'Wednesday', duration_min: 20, exercises: [
+            { name: 'Bodyweight Squats', sets: 3, reps: '15' },
+            { name: 'Mountain Climbers', sets: 3, reps: '20' }
+        ]},
+        { day: 'Thursday', duration_min: 20, exercises: [
+            { name: 'Step Ups', sets: 3, reps: '12 each leg' }
+        ]},
+        { day: 'Friday', duration_min: 20, exercises: [
+            { name: 'Glute Bridges', sets: 3, reps: '15' },
+            { name: 'Side Plank', sets: 3, reps: '20 sec' }
+        ]},
+        { day: 'Saturday', duration_min: 25, exercises: [
+            { name: 'Jogging', sets: 1, reps: '25 min' }
+        ]},
+        { day: 'Sunday', duration_min: 15, exercises: [
+            { name: 'Stretching', sets: 1, reps: '15 min' }
+        ]}
+    ],
+
+    maintain: [
+        { day: 'Monday', duration_min: 20, exercises: [
+            { name: 'Bodyweight Squats', sets: 3, reps: '12' },
+            { name: 'Push Ups', sets: 3, reps: '10' }
+        ]},
+        { day: 'Tuesday', duration_min: 20, exercises: [
+            { name: 'Walking', sets: 1, reps: '20 min' }
+        ]},
+        { day: 'Wednesday', duration_min: 20, exercises: [
+            { name: 'Rows', sets: 3, reps: '10' },
+            { name: 'Glute Bridges', sets: 3, reps: '12' }
+        ]},
+        { day: 'Thursday', duration_min: 15, exercises: [
+            { name: 'Plank', sets: 3, reps: '30 sec' }
+        ]},
+        { day: 'Friday', duration_min: 20, exercises: [
+            { name: 'Jump Rope', sets: 3, reps: '1 min' }
+        ]},
+        { day: 'Saturday', duration_min: 25, exercises: [
+            { name: 'Sports / Dance', sets: 1, reps: '25 min' }
+        ]},
+        { day: 'Sunday', duration_min: 20, exercises: [
+            { name: 'Yoga', sets: 1, reps: '20 min' }
+        ]}
+    ]
 };
 
-const nutritionPlans = {
-  gain: {
-    daily_target_calories: 2500,
-    meals: [
-      { name: "Breakfast", calories: 600, protein_g: 32, carbs_g: 80, fats_g: 18, items: ["Egg Omelette", "Whole Grain Toast", "Banana"] },
-      { name: "Lunch", calories: 700, protein_g: 40, carbs_g: 90, fats_g: 22, items: ["Grilled Chicken", "Brown Rice", "Avocado"] }
-    ]
-  },
-  lose: {
-    daily_target_calories: 1500,
-    meals: [
-      { name: "Breakfast", calories: 300, protein_g: 20, carbs_g: 30, fats_g: 8, items: ["Greek Yogurt", "Berries"] },
-      { name: "Lunch", calories: 400, protein_g: 30, carbs_g: 40, fats_g: 12, items: ["Salad with Tuna", "Quinoa"] }
-    ]
-  },
-  maintain: {
-    daily_target_calories: 2000,
-    meals: [
-      { name: "Breakfast", calories: 400, protein_g: 25, carbs_g: 45, fats_g: 10, items: ["Oatmeal", "Milk"] },
-      { name: "Lunch", calories: 500, protein_g: 35, carbs_g: 55, fats_g: 16, items: ["Grilled Fish", "Sweet Potato", "Green Beans"] }
-    ]
-  }
-};
+/* ---------------- DASHBOARD LOGIC (FIXED) ---------------- */
+function getDashboardData(activeMode, weight, height) {
+    const h = height / 100;
+    const bmi = +(weight / (h * h)).toFixed(1);
 
-// --- Dashboard Data Helper (dynamic by goal & weight) ---
-function getDashboardData(goal, startingWeight) {
-  let metrics, weightProgress;
-  startingWeight = parseFloat(startingWeight) || 70;
-  if (goal === 'gain') {
-    metrics = [{ label: "Current Weight", value: `${startingWeight} kg`, change: "+1.5 kg", icon: "trending_up" }];
-    weightProgress = [
-      { week: 1, weight: startingWeight },
-      { week: 6, weight: +(startingWeight + 1.5).toFixed(1) }
-    ];
-  } else if (goal === 'lose') {
-    metrics = [{ label: "Current Weight", value: `${startingWeight} kg`, change: "-2 kg", icon: "trending_down" }];
-    weightProgress = [
-      { week: 1, weight: startingWeight },
-      { week: 6, weight: +(startingWeight - 2).toFixed(1) }
-    ];
-  } else {
-    metrics = [{ label: "Current Weight", value: `${startingWeight} kg`, change: "0 kg", icon: "target" }];
-    weightProgress = [
-      { week: 1, weight: startingWeight },
-      { week: 6, weight: startingWeight }
-    ];
-  }
-  return {
-    metrics,
-    charts: {
-      weight_progress: weightProgress,
-      calorie_intake: goal === 'gain'
-        ? [{ day: "Mon", intake: 2500 }, { day: "Sun", intake: 2550 }]
-        : goal === 'lose'
-        ? [{ day: "Mon", intake: 1450 }, { day: "Sun", intake: 1550 }]
-        : [{ day: "Mon", intake: 2000 }, { day: "Sun", intake: 2050 }]
+    let guidanceValue = '';
+    let guidanceNote = '';
+
+    const target = +(22 * h * h).toFixed(1);
+    const diff = +(target - weight).toFixed(1);
+
+    if (bmi >= 18.5 && bmi <= 24.9) {
+        guidanceValue = 'Maintain current weight';
+        guidanceNote = 'You are already in a healthy range';
+    } else if (diff > 0) {
+        guidanceValue = `Gain ${diff} kg`;
+        guidanceNote = 'Slow, healthy weight gain recommended';
+    } else {
+        guidanceValue = `Lose ${Math.abs(diff)} kg`;
+        guidanceNote = 'Gradual fat loss recommended';
     }
-  };
+
+    const weekly =
+        activeMode === 'gain' ? 0.3 :
+        activeMode === 'lose' ? -0.4 : 0;
+
+    const progress = [];
+    for (let i = 0; i < 8; i++) {
+        progress.push({
+            week: i + 1,
+            weight: +(weight + weekly * i).toFixed(1)
+        });
+    }
+
+    return {
+        metrics: [
+            { label: 'Current Weight', value: `${weight} kg`, change: `Weekly ${weekly} kg` },
+            { label: 'BMI', value: bmi, change: 'Healthy range: 18.5–24.9' },
+            { label: 'Weight guidance', value: guidanceValue, change: guidanceNote }
+        ],
+        charts: { weight_progress: progress }
+    };
 }
 
+/* ---------------- API ---------------- */
 app.post('/api/coach', async (req, res) => {
-  const userGoal = (req.body.goal || '').toLowerCase();
-  let planKey = 'maintain'; // fallback
-  if (userGoal.includes('gain')) planKey = 'gain';
-  else if (userGoal.includes('lose')) planKey = 'lose';
+    const weight = Number(req.body.weight);
+    const height = Number(req.body.height);
+    const goal = req.body.goal;
 
-  // Deep clone so we don't mutate the template
-  let workoutPlanTemplate = JSON.parse(JSON.stringify(planTemplates[planKey]));
+    const bmi = +(weight / ((height / 100) ** 2)).toFixed(1);
 
-  // For each exercise, fetch a relevant YouTube video ID
-  for (const day of workoutPlanTemplate) {
-    for (const ex of day.exercises) {
-      const searchTerm = `${ex.name} exercise demo workout ${planKey}`;
-      ex.link_id = (await fetchYouTubeVideoId(searchTerm)) || "";
+    let activeMode = goal;
+    let infoMessage = '';
+
+    if (bmi < 18.5) {
+        activeMode = 'gain';
+        infoMessage = 'You are underweight. Healthy weight gain is recommended.';
+    } else if (bmi <= 24.9) {
+        activeMode = goal === 'lose' || goal === 'gain' ? 'maintain' : goal;
+        infoMessage = 'Your weight is healthy. Maintaining is best.';
+    } else {
+        activeMode = 'lose';
+        infoMessage = 'Gradual fat loss is recommended for better health.';
     }
-  }
 
-  // Get user weight from input for dynamic dashboard
-  const startingWeight = req.body.weight;
-  const dashboard_data = getDashboardData(planKey, startingWeight);
+    const workout = JSON.parse(JSON.stringify(planTemplates[activeMode]));
+    for (const day of workout) {
+        for (const ex of day.exercises) {
+            ex.link_id = await fetchYouTubeVideoId(`${ex.name} exercise`);
+        }
+    }
 
-  const mockPlanData = {
-    workout_plan: workoutPlanTemplate,
-    nutrition_plan: nutritionPlans[planKey],
-    dashboard_data
-  };
+  /* 3️⃣ CORRECT NUTRITION LOGIC (FIX) */
+    const h = height / 100;
+    const idealWeight = +(22 * h * h).toFixed(1);
 
-  res.json(mockPlanData);
+    let calories = idealWeight * 33; // maintenance
+
+    if (activeMode === 'gain') calories += 300;
+    if (activeMode === 'lose') calories -= 400;
+
+    calories = Math.round(calories);
+
+    const protein = Math.round(idealWeight * 1.2);
+
+    res.json({
+        info_message: infoMessage,
+        workout_plan: workout,
+        nutrition_plan: {
+            daily_target_calories: calories,
+            protein_target_g: protein,
+            meals: [
+                {
+                    name: 'Breakfast',
+                    calories: Math.round(calories * 0.3),
+                    protein_g: Math.round(protein * 0.3),
+                    items: ['Eggs', 'Oats'],
+                    explanation: 'Energy to start the day.'
+                },
+                {
+                    name: 'Lunch',
+                    calories: Math.round(calories * 0.4),
+                    protein_g: Math.round(protein * 0.4),
+                    items: ['Rice', 'Protein'],
+                    explanation: 'Main recovery meal.'
+                },
+                {
+                    name: 'Dinner',
+                    calories: Math.round(calories * 0.3),
+                    protein_g: Math.round(protein * 0.3),
+                    items: ['Paneer', 'Vegetables'],
+                    explanation: 'Light and protein-rich.'
+                }
+            ]
+        },
+        dashboard_data: getDashboardData(activeMode, weight, height)
+    });
 });
 
-app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
-});
+/* ---------------- START SERVER ---------------- */
+app.listen(PORT, () =>
+    console.log(`✅ Server running at http://localhost:${PORT}`)
+);
 
-app.listen(PORT, () => {
-  console.log(`Server running at http://localhost:${PORT}`);
-});

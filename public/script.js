@@ -1,145 +1,176 @@
-// script.js
 const form = document.getElementById('user-input-form');
-const generateButton = document.querySelector('.primary-btn');
-const onboardingScreen = document.getElementById('onboarding-screen');
-const resultsScreen = document.getElementById('results-screen');
 const workoutPlanContainer = document.getElementById('workout-plan-container');
 const nutritionPlanContainer = document.getElementById('nutrition-plan-container');
 const trackingCardsContainer = document.getElementById('tracking-cards-container');
+const bmiInfoCard = document.getElementById('bmi-info-card');
+
 const backBtn = document.getElementById('back-btn');
 const regenerateBtn = document.getElementById('regenerate-btn');
+const themeToggle = document.getElementById('theme-toggle');
 
-let weightChartInstance = null;
+const heightInput = document.getElementById('height');
+const weightInput = document.getElementById('weight');
+const goalInput = document.getElementById('goal');
+
+const heightError = document.getElementById('height-error');
+const weightError = document.getElementById('weight-error');
+const goalError = document.getElementById('goal-error');
+
 let lastUserData = null;
+let chartInstance = null;
 
-// Utility: switch views
-function switchScreen(showId) {
-  document.querySelectorAll('.screen').forEach(s => s.classList.add('hidden'));
-  document.getElementById(showId).classList.remove('hidden');
-  window.scrollTo({ top: 0, behavior: 'smooth' });
+/* THEME */
+themeToggle.onclick = () => {
+    document.body.classList.toggle('dark');
+    themeToggle.textContent = document.body.classList.contains('dark') ? '☀️' : '🌙';
+};
+
+/* VALIDATION */
+function validate() {
+    let ok = true;
+    heightError.textContent = '';
+    weightError.textContent = '';
+    goalError.textContent = '';
+
+    if (heightInput.value < 120 || heightInput.value > 230) {
+        heightError.textContent = 'Height must be 120–230 cm';
+        ok = false;
+    }
+    if (weightInput.value < 30 || weightInput.value > 250) {
+        weightError.textContent = 'Weight must be 30–250 kg';
+        ok = false;
+    }
+    if (!goalInput.value) {
+        goalError.textContent = 'Select a goal';
+        ok = false;
+    }
+    return ok;
 }
 
-// Submit handler
-form.addEventListener('submit', async (e) => {
-  e.preventDefault();
-  const userData = {
-    height: document.getElementById('height').value,
-    weight: document.getElementById('weight').value,
-    goal: document.getElementById('goal').value
-  };
-  lastUserData = userData;
-  await requestPlan(userData);
+/* FORM */
+form.addEventListener('submit', async e => {
+    e.preventDefault();
+    if (!validate()) return;
+
+    lastUserData = {
+        height: heightInput.value,
+        weight: weightInput.value,
+        goal: goalInput.value
+    };
+
+    switchScreen('results-screen');
+    await loadPlan(lastUserData);
 });
 
-// Regenerate button (calls same API again)
-regenerateBtn.addEventListener('click', async () => {
-  if (!lastUserData) return alert('No previous data found. Please generate the plan first.');
-  await requestPlan(lastUserData);
-});
+backBtn.onclick = () => switchScreen('onboarding-screen');
+regenerateBtn.onclick = async () => loadPlan(lastUserData);
 
-// Back button
-backBtn.addEventListener('click', () => {
-  switchScreen('onboarding-screen');
-});
+function switchScreen(id) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.add('hidden'));
+    document.getElementById(id).classList.remove('hidden');
+    window.scrollTo(0,0);
+}
 
-// Request plan from server
-async function requestPlan(userData) {
-  try {
-    generateButton.textContent = 'Generating...';
-    generateButton.disabled = true;
-    switchScreen('results-screen'); // show results area while loading
-    // option: show a temporary "loading" text
-    workoutPlanContainer.innerHTML = '<div class="plan-card">Loading plan…</div>';
-
+/* FETCH */
+async function loadPlan(data) {
     const res = await fetch('/api/coach', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(userData)
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
     });
 
-    if (!res.ok) throw new Error('Server returned ' + res.status);
-
     const plan = await res.json();
-    renderWorkoutPlan(plan.workout_plan);
-    renderNutritionPlan(plan.nutrition_plan);
+
+    bmiInfoCard.textContent = plan.info_message;
+    bmiInfoCard.classList.remove('hidden');
+
+    renderWorkout(plan.workout_plan);
+    renderNutrition(plan.nutrition_plan);
     renderDashboard(plan.dashboard_data);
-  } catch (err) {
-    console.error('Could not generate plan:', err);
-    alert('Could not generate plan. Please check the server console.');
-    switchScreen('onboarding-screen');
-  } finally {
-    generateButton.textContent = 'Generate My Plan';
-    generateButton.disabled = false;
-  }
 }
 
-// Rendering
-function renderWorkoutPlan(plan) {
-  if (!workoutPlanContainer) return;
-  workoutPlanContainer.innerHTML = plan.map(day => `
-    <div class="plan-card">
-      <h3>${day.day} — ${day.focus} (${day.duration_min} min)</h3>
-      ${day.exercises.map(ex => `
-        <div class="exercise-item">
-          <strong>${ex.name}</strong>
-          <div>${ex.sets} sets • ${ex.reps} • Rest ${ex.rest_s}s</div>
-          <div><a href="https://www.youtube.com/watch?v=${ex.link_id}" target="_blank" rel="noopener">Watch demo</a></div>
+/* WORKOUT */
+function renderWorkout(days) {
+    workoutPlanContainer.innerHTML = days.map(d => `
+        <div class="day-card">
+            <div class="card-header">
+                <strong>${d.day}</strong>
+                <span class="duration-badge">⏱ ${d.duration_min} min</span>
+            </div>
+            <div class="card-details hidden">
+                ${d.exercises.map(e => `
+                    <div style="display:flex;justify-content:space-between;padding:6px 0">
+                        <span>${e.name} (${e.sets}×${e.reps})</span>
+                        <a target="_blank" href="https://youtube.com/watch?v=${e.link_id}">▶ Demo</a>
+                    </div>
+                `).join('')}
+            </div>
         </div>
-      `).join('')}
-    </div>
-  `).join('');
+    `).join('');
+    toggleCards('.day-card');
 }
 
-function renderNutritionPlan(nutrition) {
-  if (!nutritionPlanContainer) return;
-  let html = `<div class="plan-card"><p><strong>Target Calories:</strong> ${nutrition.daily_target_calories} kcal/day</p>`;
-  html += nutrition.meals.map(m => `
-    <div style="margin-top:8px;">
-      <strong>${m.name}</strong> — ${m.calories} kcal
-      <div>Protein: ${m.protein_g}g • Carbs: ${m.carbs_g}g • Fats: ${m.fats_g}g</div>
-      <ul>${m.items.map(i => `<li>${i}</li>`).join('')}</ul>
-    </div>
-  `).join('');
-  html += `</div>`;
-  nutritionPlanContainer.innerHTML = html;
+/* NUTRITION */
+function renderNutrition(n) {
+    nutritionPlanContainer.innerHTML = `
+        <p style="color:var(--text-sub);margin-bottom:10px">
+            Daily Target: ${n.daily_target_calories} kcal • ${n.protein_target_g}g protein
+        </p>
+        <div class="nutrition-row">
+            ${n.meals.map(m => `
+                <div class="nutrition-card day-card">
+                    <div class="card-header">
+                        <strong>${m.name}</strong>
+                        <span class="duration-badge">${m.calories} kcal</span>
+                    </div>
+                    <div class="card-details hidden">
+                        <p>Protein: ${m.protein_g}g</p>
+                        <ul>${m.items.map(i => `<li>${i}</li>`).join('')}</ul>
+                        <p style="font-size:0.85rem;color:var(--text-sub)">${m.explanation}</p>
+                    </div>
+                </div>
+            `).join('')}
+        </div>
+    `;
+    toggleCards('.nutrition-card');
 }
 
-function renderDashboard(data) {
-  if (!trackingCardsContainer) return;
-  trackingCardsContainer.innerHTML = data.metrics.map(m => `
-    <div class="metric-card">
-      <div>${m.label}</div>
-      <div style="font-weight:700;font-size:1.4rem">${m.value}</div>
-      <div style="color:#666">${m.change}</div>
-    </div>
-  `).join('');
-  drawWeightChart(data.charts.weight_progress);
+/* DASHBOARD */
+function renderDashboard(d) {
+    trackingCardsContainer.innerHTML = d.metrics.map(m => `
+        <div class="metric-card">
+            <div class="metric-label">${m.label}</div>
+            <div class="metric-value">${m.value}</div>
+            <div class="metric-note">${m.change}</div>
+        </div>
+    `).join('');
+    drawChart(d.charts.weight_progress);
 }
 
-function drawWeightChart(data) {
-  const canvas = document.getElementById('weight-chart');
-  if (!canvas) return;
-  const ctx = canvas.getContext('2d');
-  const labels = data.map(d => `Week ${d.week}`);
-  const values = data.map(d => d.weight);
+/* CHART */
+function drawChart(data) {
+    const ctx = document.getElementById('weight-chart');
+    if (chartInstance) chartInstance.destroy();
 
-  if (weightChartInstance) weightChartInstance.destroy();
-  weightChartInstance = new Chart(ctx, {
-    type: 'line',
-    data: {
-      labels,
-      datasets: [{
-        label: 'Weight (kg)',
-        data: values,
-        borderColor: '#FF6F00',
-        backgroundColor: 'rgba(255,111,0,0.12)',
-        tension: 0.35,
-        pointRadius: 4
-      }]
-    },
-    options: {
-      responsive: true,
-      plugins: { legend: { display: false } }
-    }
-  });
+    chartInstance = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: data.map(d => `Week ${d.week}`),
+            datasets: [{
+                data: data.map(d => d.weight),
+                borderColor: '#3b82f6',
+                backgroundColor: 'rgba(59,130,246,0.2)',
+                fill: true,
+                tension: 0.4
+            }]
+        },
+        options: { plugins: { legend: { display: false } } }
+    });
+}
+
+/* TOGGLE */
+function toggleCards(selector) {
+    document.querySelectorAll(selector).forEach(c => {
+        c.onclick = () => c.querySelector('.card-details').classList.toggle('hidden');
+    });
 }

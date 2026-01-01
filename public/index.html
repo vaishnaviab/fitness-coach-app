@@ -1,66 +1,98 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>AI Fitness Coach — Full Stack</title>
-  <link rel="stylesheet" href="style.css" />
+    <meta charset="UTF-8" />
+    <title>AI Fitness Coach</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <link rel="stylesheet" href="style.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
-  <main id="app-container">
-    <header>
-      <img src="dumbbell.svg" alt="logo" class="logo" />
-      <h1>Your AI Fitness Coach</h1>
-      <p>Fill details → Generate a personalized plan (from the server)</p>
-    </header>
 
-    <!-- Step 1 - Onboarding form -->
-    <section id="onboarding-screen" class="screen active">
-      <div class="card form-card">
-        <form id="user-input-form">
-          <label for="height">Height (cm)</label>
-          <input id="height" type="number" required value="170" />
+<nav class="navbar">
+    <div class="nav-content">
+        <span class="logo">💎 AI Fitness Coach</span>
+        <button id="theme-toggle">🌙</button>
+    </div>
+</nav>
 
-          <label for="weight">Weight (kg)</label>
-          <input id="weight" type="number" required value="70" />
+<main id="app-container">
 
-          <label for="goal">Goal</label>
-          <select id="goal" required>
-            <option value="maintain">Maintain</option>
-            <option value="lose">Weight Loss</option>
-            <option value="gain">Muscle Gain</option>
-          </select>
+    <!-- ONBOARDING -->
+    <section id="onboarding-screen" class="screen">
+        <header class="app-header">
+            <h1>AI Fitness Coach</h1>
+            <p>Your personalized workout & nutrition plan awaits</p>
+        </header>
 
-          <button type="submit" class="primary-btn">Generate My Plan</button>
-        </form>
-      </div>
+        <div class="form-card">
+            <form id="user-input-form" novalidate>
+
+                <div class="input-group">
+                    <label>📏 Height (cm)</label>
+                    <input id="height" type="number" placeholder="e.g. 170" />
+                    <small class="error-msg" id="height-error"></small>
+                </div>
+
+                <div class="input-group">
+                    <label>⚖️ Weight (kg)</label>
+                    <input id="weight" type="number" placeholder="e.g. 60" />
+                    <small class="error-msg" id="weight-error"></small>
+                </div>
+
+                <div class="input-group">
+                    <label>🎯 Your Goal</label>
+                    <select id="goal">
+                        <option value="">Select goal</option>
+                        <option value="gain">Muscle Gain</option>
+                        <option value="lose">Weight Loss</option>
+                        <option value="maintain">Maintain</option>
+                    </select>
+                    <small class="error-msg" id="goal-error"></small>
+                </div>
+
+                <button class="primary-btn">Generate My Plan</button>
+            </form>
+        </div>
     </section>
 
-    <!-- Results (same page below) -->
+    <!-- RESULTS -->
     <section id="results-screen" class="screen hidden">
-      <h2 class="section-title">Personalized Workout Schedule</h2>
-      <div id="workout-plan-container"></div>
 
-      <h2 class="section-title">Nutrition Guide</h2>
-      <div id="nutrition-plan-container"></div>
+        <!-- <div class="results-header-centered">
+            <div class="plan-badge">🎯 Your Personalized Plan</div>
+        </div> -->
 
-      <h2 class="section-title">Progress Dashboard</h2>
-      <div id="tracking-cards-container"></div>
+        <!-- BMI MESSAGE -->
+        <!-- BMI MESSAGE -->
+         <div id="bmi-info-card" class="info-card info-center hidden"></div>
 
-      <div class="chart-card">
-        <h3>Weight Progress</h3>
-        <canvas id="weight-chart" width="400" height="200"></canvas>
-      </div>
 
-      <div class="actions">
-        <button id="back-btn" class="secondary-btn">← Back</button>
-        <button id="regenerate-btn" class="primary-btn">Regenerate Plan</button>
-      </div>
+        <h2 class="section-title">💪 Weekly Workout Plan</h2>
+        <div id="workout-plan-container"></div>
+
+        <h2 class="section-title">🥗 Daily Nutrition Guide</h2>
+        <div id="nutrition-plan-container"></div>
+
+        <h2 class="section-title">📊 Progress Dashboard</h2>
+        <div id="tracking-cards-container" class="dashboard-grid"></div>
+
+        <div class="chart-container-card">
+            <h3>Weight Projection</h3>
+            <canvas id="weight-chart"></canvas>
+            <p class="chart-footer">Stay consistent and track your progress 💪</p>
+        </div>
+
+        <div class="sticky-actions">
+            <button id="back-btn" class="secondary-btn">Back</button>
+            <button id="regenerate-btn" class="primary-btn">🔄 Regenerate Plan</button>
+        </div>
+
     </section>
-  </main>
+</main>
 
-  <!-- Chart.js CDN -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-  <script src="script.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="script.js"></script>
 </body>
 </html>
