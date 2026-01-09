@@ -6,7 +6,7 @@ const axios = require('axios');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-/* 🔴 Your YouTube API key */
+/*YouTube API key */
 const YOUTUBE_API_KEY = 'AIzaSyDMOZiT8X7BmlznyYREtP3QNEVSO9vj4HY';
 
 app.use(bodyParser.json());
