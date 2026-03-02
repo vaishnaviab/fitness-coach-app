@@ -7,7 +7,7 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 /*YouTube API key */
-const YOUTUBE_API_KEY = 'AIzaSyDMOZiT8X7BmlznyYREtP3QNEVSO9vj4HY';
+const YOUTUBE_API_KEY = 'AIz------------------------------4HY';
 
 app.use(bodyParser.json());
 app.use(express.static(path.join(__dirname, 'public')));
